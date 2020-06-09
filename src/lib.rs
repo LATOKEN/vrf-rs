@@ -16,6 +16,17 @@
 //! * `P256_SHA256_TAI`: the aforementioned algorithms with `SHA256` and the `NIST P-256` curve.
 //! * `K163_SHA256_TAI`: the aforementioned algorithms with `SHA256` and the `NIST K-163` curve.
 //! * `SECP256K1_SHA256_TAI`: the aforementioned algorithms with `SHA256` and the `secp256k1` curve.
+extern crate libc;
+
+use crate::openssl::{ECVRF, CipherSuite};
+use failure::_core::ptr::null;
+use std::str;
+use std::ffi::{
+    CStr,
+    CString
+};
+use libc::c_char;
+
 pub mod dummy;
 pub mod openssl;
 
@@ -46,4 +57,56 @@ pub trait VRF<PublicKey, SecretKey> {
     ///
     /// * If successful, a vector of octets with the VRF hash output.
     fn verify(&mut self, y: PublicKey, pi: &[u8], alpha: &[u8]) -> Result<Vec<u8>, Self::Error>;
+}
+
+#[no_mangle]
+pub extern fn evaluate(private: *const c_char, msg: *const c_char) -> CString {
+
+    let mut vrf = ECVRF::from_suite(CipherSuite::SECP256K1_SHA256_TAI).unwrap();
+    // Inputs: Secret Key, Public Key (derived) & Message
+    let prv = unsafe { CStr::from_ptr(private) }.to_str().unwrap();
+    let secret_key =
+        hex::decode(prv).unwrap();
+
+    let message = unsafe { CStr::from_ptr(msg) }.to_str().unwrap().as_bytes();
+
+    let proof = vrf.prove(&secret_key, &message).unwrap();
+
+    return CString::new(hex::encode(&proof).to_string()).unwrap();
+}
+
+#[no_mangle]
+pub extern fn verify(public: *const c_char, prf: *const c_char, msg: *const c_char) -> bool {
+
+    let mut vrf = ECVRF::from_suite(CipherSuite::SECP256K1_SHA256_TAI).unwrap();
+    let pub_key = unsafe { CStr::from_ptr(public) }.to_str().unwrap();
+    let public_key =
+        hex::decode(pub_key).unwrap();
+
+    let message = unsafe { CStr::from_ptr(msg) }.to_str().unwrap().as_bytes();
+
+    let proof = hex::decode(unsafe { CStr::from_ptr(prf) }.to_str().unwrap()).unwrap();
+
+    let val = vrf.proof_to_hash(&proof).unwrap();
+
+    // VRF proof verification (returns VRF hash output)
+    let beta = vrf.verify(&public_key, &proof, &message);
+
+    // proof
+    match beta {
+        Ok(beta) => {
+            val == beta
+        }
+        Err(e) => {
+            false
+        }
+    }
+}
+
+#[no_mangle]
+pub extern fn proof_to_hash(proof_hex: *const c_char) -> CString {
+    let mut vrf = ECVRF::from_suite(CipherSuite::SECP256K1_SHA256_TAI).unwrap();
+    let proof = hex::decode(unsafe { CStr::from_ptr(proof_hex) }.to_str().unwrap()).unwrap();
+    let val = vrf.proof_to_hash(&proof).unwrap();
+    return CString::new(hex::encode(&val)).unwrap()
 }
