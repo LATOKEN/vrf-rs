@@ -9,6 +9,13 @@
       <Visible>true</Visible>
       <Pack>false</Pack>
     </Content>
+    <Content Include="$(MSBuildThisFileDirectory)..\..\runtimes\osx-x64\native\libvrf.dylib">
+      <PackageCopyToOutput>true</PackageCopyToOutput>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>native\osx-x64\libvrf.dylib</Link>
+      <Visible>true</Visible>
+      <Pack>false</Pack>
+    </Content>
 
   </ItemGroup>
 </Project>
