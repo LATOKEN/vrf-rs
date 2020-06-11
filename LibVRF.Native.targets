@@ -16,6 +16,13 @@
       <Visible>true</Visible>
       <Pack>false</Pack>
     </Content>
+    <Content Include="$(MSBuildThisFileDirectory)..\..\runtimes\win-x64\native\vrf.dll">
+      <PackageCopyToOutput>true</PackageCopyToOutput>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>native\win-x64\vrf.dll</Link>
+      <Visible>true</Visible>
+      <Pack>false</Pack>
+    </Content>
 
   </ItemGroup>
 </Project>
