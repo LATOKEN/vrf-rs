@@ -95,8 +95,8 @@ pub extern fn proof_to_hash(proof: *mut u8, proof_len: c_int, result: *mut u8, m
         if val.len() > max_result_len as usize {
             return 0
         }
-        std::ptr::copy(val.as_ptr(), result, proof.len());
-        return proof.len() as c_int;
+        std::ptr::copy(val.as_ptr(), result, val.len());
+        return val.len() as c_int;
     }
 
 }

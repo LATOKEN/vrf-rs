@@ -1,5 +1,4 @@
 #!/bin/bash
 
-mkdir -p lib/linux-x64
-cargo build --release
-cp target/release/libvrf.so lib/linux-x64/
+docker build -t vrf-rs .
+docker run --rm -v "$(pwd)/lib/linux-x64":/opt/dist vrf-rs
